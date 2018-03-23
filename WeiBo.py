@@ -38,16 +38,16 @@ def WaitForScan(qrid):#等待扫码，返回真假
         #print req.text
         state=re.findall('"msg":"(.*?)"',req.text)[0]
         if state=='\u6210\u529f\u626b\u63cf\uff0c\u8bf7\u5728\u624b\u673a\u70b9\u51fb\u786e\u8ba4\u4ee5\u767b\u5f55':
-            print '扫码成功，请确认登录'
+            print u'扫码成功，请确认登录'
         elif state=='succ':
-            print '登录成功'
+            print u'登录成功'
             loginALT=re.findall('"alt":"(.*?)"',req.text)[0].encode('utf8')
             return True
         elif state=='\u672a\u4f7f\u7528':
             pass
 
         else:
-            print '扫码失败'
+            print u'扫码失败'
             return False
 
         time.sleep(1)

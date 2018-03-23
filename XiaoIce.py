@@ -48,7 +48,7 @@ def Init():
     
         
 
-def GetResponse():
+def GetReply():
     global accountHeaders,oldId
     while(True):
         t=str(time.time())
@@ -62,8 +62,10 @@ def GetResponse():
             if int(temp['data']['oldid'])<=oldId:#消息重复，重新获取
                 time.sleep(0.3)
                 continue
-            content=re.findall('<p class="page">(.*?)((<img(?:(.*?))/>)*)</p>',temp['data']['html'])
-            if len(content)==0:
+            regexMatch=re.findall('<p class="page">(.*?)</p>',temp['data']['html'])
+            
+            #print content
+            if len(regexMatch)==0:
                 res.type='image'
                 content=re.findall('<img src="(.*?)"',temp['data']['html'])
                 if len(content)==0:
@@ -73,7 +75,9 @@ def GetResponse():
                 res.content=content[1]#大图
             else:
                 #print content
-                content=content[0][0].encode('utf8')
+                #print temp['data']['html']
+                content=re.sub('<img(.*?)>',' ',regexMatch[0])
+                content=content.encode('utf8')
                 if content==prevMsg:
                     time.sleep(0.3)
                     continue
@@ -106,14 +110,29 @@ def ChatWithXB(msg):
     req=requests.post(requestUrl,data=formData,headers=accountHeaders)
     #print req.text
 
+def GetResponse(msg):
+    ChatWithXB(msg.encode('utf8'))
+    return GetReply()
+
+def GetImage(url):
+    global accountHeaders
+    content=requests.get('https:'+url,headers=accountHeaders)
+    fileName='temp\\'+url[url.index('?')+1:]
+    #print fileName
+    fp=open(fileName,'wb')
+    fp.write(content.content)
+    fp.close()
+    return fileName
+
 if __name__=='__main__':
     Init()
     while True:
         input=raw_input().decode('gb2312').encode('utf8')
         ChatWithXB(input)
-        res=GetResponse()
+        res=GetReply()
         if res.type=='text':
             print u'[小冰]:'+res.content.decode('UTF-8').encode('GBK')
         elif res.type=='image':
             print u'[小冰]:图片回复:%s'%res.content.decode('UTF-8').encode('GBK')
+            GetImage(res.content)
         #print 'type:%s content:%s'%(res.type,res.content)
